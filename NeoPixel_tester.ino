@@ -6,7 +6,7 @@
 #define PIN A0
 #define N_PIXELS  5
 
-uint8_t  maxBrightness = 10;  // Maximum brightness of the pixels
+uint8_t  maxBrightness = 20;  // Maximum brightness of the pixels
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
@@ -27,10 +27,11 @@ void loop() {
   // Some example procedures showing how to display to the pixels:
   //RGBTest(500);
   //rainbow(5);
-  rainbowCycle(5);
+  //rainbowCycle(5);
   //levelMeter(30000, 255, 0, 0);
-  delay(1000);
-  levelSweepRed(5);
+  //delay(1000);
+  //levelSweepRed(5);
+  levelSweepGreenRed(5);
 }
 
 void RGBTest(uint8_t wait) {
@@ -104,6 +105,26 @@ void levelMeter(uint16_t value, uint8_t red, uint8_t green, uint8_t blue) {
   strip.show();
 }
 
+void levelMeter2(uint16_t value, uint8_t red, uint8_t green, uint8_t blue, uint8_t red2, uint8_t green2, uint8_t blue2) {
+  red = (red * maxBrightness)/255;
+  green = (green * maxBrightness)/255;
+  blue = (blue * maxBrightness)/255;
+  red2 = (red2 * maxBrightness)/255;
+  green2 = (green2 * maxBrightness)/255;
+  blue2 = (blue2 * maxBrightness)/255;
+  uint16_t i;
+  for(i=0; i < (uint16_t)((value/65535.) * strip.numPixels()); i++){
+    strip.setPixelColor(i, strip.Color(red, green, blue));
+  }
+  // Calculate the fraction of the way to filling the next pixel
+  uint8_t frac = ((value * strip.numPixels()) % 65535)/255;
+  strip.setPixelColor(i, strip.Color((frac*red + (255-frac)*red2)/255, (frac*green + (255-frac)*green2)/255, (frac*blue + (255-frac)*blue2)/255));
+  for(i++; i< strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(red2, green2, blue2));
+  }
+  strip.show();
+}
+
 void levelSweepRed(uint8_t wait) {
   uint8_t i;
   for(i=0; i < 255; i++){
@@ -112,6 +133,18 @@ void levelSweepRed(uint8_t wait) {
   }
   for(i=254; i > 0; i--){
     levelMeter(65535*(i/255.), 255, 0, 0);
+    delay(wait);
+  }
+}
+
+void levelSweepGreenRed(uint8_t wait) {
+  uint8_t i;
+  for(i=0; i < 255; i++){
+    levelMeter2(65535*(i/255.), 0, 255, 0, 255, 0, 0);
+    delay(wait);
+  }
+  for(i=254; i > 0; i--){
+    levelMeter2(65535*(i/255.), 0, 255, 0, 255, 0, 0);
     delay(wait);
   }
 }
