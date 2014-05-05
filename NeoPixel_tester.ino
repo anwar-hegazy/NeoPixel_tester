@@ -20,13 +20,17 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_PIXELS, PIN, NEO_GRB + NEO_KHZ800)
 void setup() {
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  Serial.begin(9600);
 }
 
 void loop() {
   // Some example procedures showing how to display to the pixels:
-  RGBTest(500);
-  rainbow(5);
+  //RGBTest(500);
+  //rainbow(5);
   rainbowCycle(5);
+  //levelMeter(30000, 255, 0, 0);
+  delay(1000);
+  levelSweepRed(5);
 }
 
 void RGBTest(uint8_t wait) {
@@ -80,6 +84,35 @@ uint32_t Wheel(byte WheelPos) {
   } else {
    WheelPos -= 170;
    return strip.Color(0, ((WheelPos * 3)*maxBrightness)/255, ((255 - WheelPos * 3)*maxBrightness)/255);
+  }
+}
+
+void levelMeter(uint16_t value, uint8_t red, uint8_t green, uint8_t blue) {
+  red = (red * maxBrightness)/255;
+  green = (green * maxBrightness)/255;
+  blue = (blue * maxBrightness)/255;
+  uint16_t i;
+  for(i=0; i < (uint16_t)((value/65535.) * strip.numPixels()); i++){
+    strip.setPixelColor(i, strip.Color(red, green, blue));
+  }
+  // Calculate the fraction of the way to filling the next pixel
+  uint8_t frac = ((value * strip.numPixels()) % 65535)/255;
+  strip.setPixelColor(i, strip.Color((frac*red)/255, (frac*green)/255, (frac*blue)/255));
+  for(i++; i< strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(0, 0, 0));
+  }
+  strip.show();
+}
+
+void levelSweepRed(uint8_t wait) {
+  uint8_t i;
+  for(i=0; i < 255; i++){
+    levelMeter(65535*(i/255.), 255, 0, 0);
+    delay(wait);
+  }
+  for(i=254; i > 0; i--){
+    levelMeter(65535*(i/255.), 255, 0, 0);
+    delay(wait);
   }
 }
 
